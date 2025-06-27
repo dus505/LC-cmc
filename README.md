@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中药追溯码平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#22c55e', // 主色调：绿色
+            secondary: '#d97706', // 辅助色：橙色
+            tertiary: '#475569', // 第三色：深蓝灰
+            neutral: '#f1f5f9', // 中性色：浅灰
+            dark: '#1e293b' // 深色：深蓝灰
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .card-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+      }
+      .text-balance {
+        text-wrap: balance;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-neutral font-sans text-dark">
+  <!-- 导航栏 -->
+  <header class="sticky top-0 z-50 bg-white shadow-md transition-all duration-300">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-leaf text-primary text-2xl"></i>
+        <h1 class="text-xl md:text-2xl font-bold text-dark">中药追溯码平台</h1>
+      </div>
+      
+      <nav class="hidden md:flex space-x-6">
+        <a href="#consumer" class="text-tertiary hover:text-primary transition-colors">消费者</a>
+        <a href="#enterprise" class="text-tertiary hover:text-primary transition-colors">企业</a>
+        <a href="#regulator" class="text-tertiary hover:text-primary transition-colors">监管部门</a>
+      </nav>
+      
+      <button class="md:hidden text-tertiary focus:outline-none" id="menu-toggle">
+        <i class="fa fa-bars text-xl"></i>
+      </button>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div class="md:hidden hidden bg-white border-t" id="mobile-menu">
+      <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+        <a href="#consumer" class="text-tertiary hover:text-primary py-2 transition-colors">消费者</a>
+        <a href="#enterprise" class="text-tertiary hover:text-primary py-2 transition-colors">企业</a>
+        <a href="#regulator" class="text-tertiary hover:text-primary py-2 transition-colors">监管部门</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <!-- 首页英雄区域 -->
+    <section class="text-center mb-16">
+      <h2 class="text-[clamp(1.8rem,4vw,2.8rem)] font-bold text-dark mb-4">中药全程追溯，保障用药安全</h2>
+      <p class="text-lg text-tertiary max-w-3xl mx-auto text-balance">
+        通过追溯码平台，您可以查询中药从种植、加工到流通的全流程信息，确保每一味中药的来源可查、去向可追、质量可控。
+      </p>
+    </section>
+
+    <!-- 三大入口区域 -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+      <!-- 消费者入口 -->
+      <div id="consumer" class="bg-white rounded-2xl p-6 card-shadow hover-lift">
+        <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fa fa-user text-primary text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-center mb-3">消费者查询</h3>
+        <p class="text-tertiary text-center mb-6">
+          无需注册，直接扫描中药包装上的追溯码，即可查询药品全流程信息。
+        </p>
+        <button id="consumer-btn" class="w-full gradient-bg text-white py-3 rounded-lg font-medium transition-all hover:opacity-90">
+          <i class="fa fa-search mr-2"></i>立即查询
+        </button>
+      </div>
+
+      <!-- 企业入口 -->
+      <div id="enterprise" class="bg-white rounded-2xl p-6 card-shadow hover-lift">
+        <div class="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fa fa-building text-secondary text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-center mb-3">企业管理</h3>
+        <p class="text-tertiary text-center mb-6">
+          企业认证后可管理产品追溯信息，录入种植、加工等环节数据。
+        </p>
+        <button id="enterprise-btn" class="w-full bg-secondary text-white py-3 rounded-lg font-medium transition-all hover:bg-secondary/90">
+          <i class="fa fa-key mr-2"></i>企业认证
+        </button>
+      </div>
+
+      <!-- 监管部门入口 -->
+      <div id="regulator" class="bg-white rounded-2xl p-6 card-shadow hover-lift">
+        <div class="w-16 h-16 bg-tertiary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fa fa-shield text-tertiary text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-center mb-3">监管部门</h3>
+        <p class="text-tertiary text-center mb-6">
+          监管机构认证后可监控全产业链，快速响应质量安全问题。
+        </p>
+        <button id="regulator-btn" class="w-full bg-tertiary text-white py-3 rounded-lg font-medium transition-all hover:bg-tertiary/90">
+          <i class="fa fa-lock mr-2"></i>监管认证
+        </button>
+      </div>
+    </section>
+
+    <!-- 消费者查询模态框 -->
+    <div id="consumer-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-dark">中药追溯查询</h3>
+            <button id="close-consumer-modal" class="text-tertiary hover:text-primary">
+              <i class="fa fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div class="text-center mb-8">
+            <div class="w-32 h-32 bg-neutral rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-primary">
+              <i class="fa fa-qrcode text-primary text-3xl"></i>
+            </div>
+            <p class="text-tertiary">请扫描中药包装上的追溯码</p>
+          </div>
+          
+          <div class="mb-6">
+            <label for="qr-code" class="block text-sm font-medium text-tertiary mb-2">追溯码</label>
+            <div class="flex">
+              <input type="text" id="qr-code" placeholder="或手动输入追溯码" 
+                class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+              <button id="scan-btn" class="bg-primary text-white px-4 py-3 rounded-r-lg transition-colors hover:bg-primary/90">
+                <i class="fa fa-camera"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="text-center">
+            <button id="query-btn" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90">
+              <i class="fa fa-search mr-2"></i>查询追溯信息
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 追溯信息展示页面 -->
+    <div id="trace-info" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-dark" id="product-name">中药追溯信息</h3>
+            <button id="close-trace-info" class="text-tertiary hover:text-primary">
+              <i class="fa fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fa fa-info-circle text-primary text-2xl"></i>
+            </div>
+            <p class="text-tertiary">以下是该中药的全流程追溯信息</p>
+          </div>
+          
+          <!-- 追溯码信息 -->
+          <div class="bg-neutral rounded-xl p-5 mb-8">
+            <h4 class="font-bold text-dark mb-3 flex items-center">
+              <i class="fa fa-barcode text-primary mr-2"></i>追溯码信息
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p class="text-sm text-tertiary mb-1">追溯码</p>
+                <p id="trace-code" class="font-medium">HM20230618001</p>
+              </div>
+              <div>
+                <p class="text-sm text-tertiary mb-1">查询时间</p>
+                <p id="query-time" class="font-medium">2025-06-18 14:30:22</p>
+              </div>
+              <div>
+                <p class="text-sm text-tertiary mb-1">产品名称</p>
+                <p id="trace-product-name" class="font-medium">汉麻提取物</p>
+              </div>
+              <div>
+                <p class="text-sm text-tertiary mb-1">批次号</p>
+                <p id="batch-no" class="font-medium">202306批次</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 追溯主体信息 -->
+          <div class="mb-8">
+            <h4 class="font-bold text-dark mb-3 flex items-center">
+              <i class="fa fa-building text-primary mr-2"></i>追溯主体信息
+            </h4>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-neutral">
+                  <tr>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-tertiary uppercase tracking-wider">信息类别</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-tertiary uppercase tracking-wider">详细信息</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-4 py-3 text-sm text-tertiary">企业名称</td>
+                    <td class="px-4 py-3 text-sm font-medium">黑龙江汉麻科技有限公司</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 text-sm text-tertiary">统一社会信用代码</td>
+                    <td class="px-4 py-3 text-sm font-medium">91230100MA19F5XXXXX</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 text-sm text-tertiary">企业地址</td>
+                    <td class="px-4 py-3 text-sm font-medium">黑龙江省哈尔滨市南岗区科技路88号</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 text-sm text-tertiary">法人姓名</td>
+                    <td class="px-4 py-3 text-sm font-medium">张明</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 text-sm text-tertiary">联系人</td>
+                    <td class="px-4 py-3 text-sm font-medium">李华</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 text-sm text-tertiary">联系方式</td>
+                    <td class="px-4 py-3 text-sm font-medium">0451-88887777</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <!-- 种植环节信息 -->
+          <div class="mb-8">
+            <h4 class="font-bold text-dark mb-3 flex items-center">
+              <i class="fa fa-leaf text-primary mr-2"></i>种植环节信息
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h5 class="font-medium text-dark mb-3">生产基地信息</h5>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">基地名称</span>
+                    <span class="text-sm font-medium">黑龙江汉麻种植基地</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">基地地址</span>
+                    <span class="text-sm font-medium">黑龙江省齐齐哈尔市梅里斯区</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">基地负责人</span>
+                    <span class="text-sm font-medium">王强</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">汉麻品种</span>
+                    <span class="text-sm font-medium">黑麻1号</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">基地面积</span>
+                    <span class="text-sm font-medium">500亩</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h5 class="font-medium text-dark mb-3">农事管理信息</h5>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">肥料名称</span>
+                    <span class="text-sm font-medium">有机复合肥</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">施肥日期</span>
+                    <span class="text-sm font-medium">2023-05-10</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">耕作日期</span>
+                    <span class="text-sm font-medium">2023-04-15</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">灌溉日期</span>
+                    <span class="text-sm font-medium">2023-06-05</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">采集时间</span>
+                    <span class="text-sm font-medium">2023-08-20 (晴)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 加工环节信息 -->
+          <div class="mb-8">
+            <h4 class="font-bold text-dark mb-3 flex items-center">
+              <i class="fa fa-cogs text-primary mr-2"></i>加工环节信息
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h5 class="font-medium text-dark mb-3">加工企业信息</h5>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">企业名称</span>
+                    <span class="text-sm font-medium">哈尔滨汉麻加工有限公司</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">生产地址</span>
+                    <span class="text-sm font-medium">哈尔滨市香坊区加工园区15号</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">联系人</span>
+                    <span class="text-sm font-medium">赵玲</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">联系方式</span>
+                    <span class="text-sm font-medium">0451-55556666</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h5 class="font-medium text-dark mb-3">产品加工信息</h5>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">产品名称</span>
+                    <span class="text-sm font-medium">汉麻提取物</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">规格</span>
+                    <span class="text-sm font-medium">100g/瓶</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">生产日期</span>
+                    <span class="text-sm font-medium">2023-09-05</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">保质期</span>
+                    <span class="text-sm font-medium">24个月</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-sm text-tertiary">加工负责人</span>
+                    <span class="text-sm font-medium">孙技术员</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 流通与检测信息 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <!-- 流通环节信息 -->
+            <div>
+              <h4 class="font-bold text-dark mb-3 flex items-center">
+                <i class="fa fa-truck text-primary mr-2"></i>流通环节信息
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">流通企业</span>
+                  <span class="text-sm font-medium">黑龙江中药流通有限公司</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">入库时间</span>
+                  <span class="text-sm font-medium">2023-09-10</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">出库时间</span>
+                  <span class="text-sm font-medium">2023-09-15</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">运输起止</span>
+                  <span class="text-sm font-medium">哈尔滨→齐齐哈尔</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">运输工具</span>
+                  <span class="text-sm font-medium">冷藏货车</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 检测环节信息 -->
+            <div>
+              <h4 class="font-bold text-dark mb-3 flex items-center">
+                <i class="fa fa-flask text-primary mr-2"></i>检测环节信息
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">检测机构</span>
+                  <span class="text-sm font-medium">黑龙江省药品检验研究院</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">检测时间</span>
+                  <span class="text-sm font-medium">2023-09-08</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">检测依据</span>
+                  <span class="text-sm font-medium">《中国药典》2020版</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-tertiary">检测项目</span>
+                  <span class="text-sm font-medium">有效成分、重金属、农药残留</span>
+                </div>
+                <div class="flex justify-between text-green-600">
+                  <span class="text-sm text-tertiary">检测结论</span>
+                  <span class="text-sm font-medium font-bold">符合标准，检测合格</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 追溯流程时间线 -->
+          <div class="mb-8">
+            <h4 class="font-bold text-dark mb-3 flex items-center">
+              <i class="fa fa-clock-o text-primary mr-2"></i>追溯流程时间线
+            </h4>
+            <div class="relative pl-8">
+              <div class="absolute top-0 left-0 h-full w-0.5 bg-primary/30"></div>
+              
+              <div class="relative mb-6 pb-6">
+                <div class="absolute top-0 left-[-23px] w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                  <i class="fa fa-seedling"></i>
+                </div>
+                <h5 class="font-medium text-dark mb-1">种植环节</h5>
+                <p class="text-sm text-tertiary">2023-04至2023-08</p>
+                <p class="text-sm">黑龙江汉麻种植基地完成汉麻种植与采集</p>
+              </div>
+              
+              <div class="relative mb-6 pb-6">
+                <div class="absolute top-0 left-[-23px] w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                  <i class="fa fa-cogs"></i>
+                </div>
+                <h5 class="font-medium text-dark mb-1">加工环节</h5>
+                <p class="text-sm text-tertiary">2023-09-01至2023-09-05</p>
+                <p class="text-sm">哈尔滨汉麻加工有限公司完成提取与包装</p>
+              </div>
+              
+              <div class="relative mb-6 pb-6">
+                <div class="absolute top-0 left-[-23px] w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                  <i class="fa fa-flask"></i>
+                </div>
+                <h5 class="font-medium text-dark mb-1">检测环节</h5>
+                <p class="text-sm text-tertiary">2023-09-08</p>
+                <p class="text-sm">黑龙江省药品检验研究院完成质量检测</p>
+              </div>
+              
+              <div class="relative">
+                <div class="absolute top-0 left-[-23px] w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                  <i class="fa fa-truck"></i>
+                </div>
+                <h5 class="font-medium text-dark mb-1">流通环节</h5>
+                <p class="text-sm text-tertiary">2023-09-10至2023-09-15</p>
+                <p class="text-sm">黑龙江中药流通有限公司完成仓储与运输</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-center">
+            <button id="download-report" class="bg-tertiary text-white px-6 py-3 rounded-lg font-medium transition-all hover:bg-tertiary/90 mr-3">
+              <i class="fa fa-download mr-2"></i>下载追溯报告
+            </button>
+            <button id="close-trace-btn" class="bg-white text-tertiary border border-tertiary px-6 py-3 rounded-lg font-medium transition-all hover:bg-tertiary/5">
+              <i class="fa fa-times mr-2"></i>关闭
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 企业认证模态框 -->
+    <div id="enterprise-auth" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-2xl w-full max-w-2xl">
+        <div class="p-6 border-b">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-dark">企业认证</h3>
+            <button id="close-enterprise-auth" class="text-tertiary hover:text-primary">
+              <i class="fa fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <form id="enterprise-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="ent-company" class="block text-sm font-medium text-tertiary mb-2">企业名称</label>
+                <input type="text" id="ent-company" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入企业全称">
+              </div>
+              
+              <div>
+                <label for="ent-code" class="block text-sm font-medium text-tertiary mb-2">统一社会信用代码</label>
+                <input type="text" id="ent-code" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入18位统一社会信用代码">
+              </div>
+              
+              <div>
+                <label for="ent-address" class="block text-sm font-medium text-tertiary mb-2">企业地址</label>
+                <input type="text" id="ent-address" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入企业详细地址">
+              </div>
+              
+              <div>
+                <label for="ent-legal" class="block text-sm font-medium text-tertiary mb-2">法定代表人</label>
+                <input type="text" id="ent-legal" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入法定代表人姓名">
+              </div>
+              
+              <div>
+                <label for="ent-contact" class="block text-sm font-medium text-tertiary mb-2">联系人</label>
+                <input type="text" id="ent-contact" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入联系人姓名">
+              </div>
+              
+              <div>
+                <label for="ent-phone" class="block text-sm font-medium text-tertiary mb-2">联系电话</label>
+                <input type="tel" id="ent-phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入联系电话">
+              </div>
+            </div>
+            
+            <div>
+              <label for="ent-license" class="block text-sm font-medium text-tertiary mb-2">生产许可证号</label>
+              <input type="text" id="ent-license" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入生产许可证号">
+            </div>
+            
+            <div>
+              <label for="ent-upload" class="block text-sm font-medium text-tertiary mb-2">上传营业执照</label>
+              <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
+                <i class="fa fa-file-image-o text-3xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-tertiary mb-2">点击或拖拽文件至此处上传</p>
+                <p class="text-xs text-gray-500">支持JPG、PNG格式，文件大小不超过5MB</p>
+                <input type="file" id="ent-upload" class="hidden">
+                <button type="button" id="ent-upload-btn" class="mt-3 text-primary text-sm font-medium">
+                  <i class="fa fa-cloud-upload mr-1"></i>选择文件
+                </button>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <button type="submit" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90 w-full">
+                <i class="fa fa-check mr-2"></i>提交认证申请
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 监管部门认证模态框 -->
+    <div id="regulator-auth" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-2xl w-full max-w-2xl">
+        <div class="p-6 border-b">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-dark">监管部门认证</h3>
+            <button id="close-regulator-auth" class="text-tertiary hover:text-primary">
+              <i class="fa fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <form id="regulator-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="reg-department" class="block text-sm font-medium text-tertiary mb-2">监管部门名称</label>
+                <input type="text" id="reg-department" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入监管部门全称">
+              </div>
+              
+              <div>
+                <label for="reg-code" class="block text-sm font-medium text-tertiary mb-2">机构代码</label>
+                <input type="text" id="reg-code" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入机构代码">
+              </div>
+              
+              <div>
+                <label for="reg-address" class="block text-sm font-medium text-tertiary mb-2">机构地址</label>
+                <input type="text" id="reg-address" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入机构详细地址">
+              </div>
+              
+              <div>
+                <label for="reg-legal" class="block text-sm font-medium text-tertiary mb-2">负责人</label>
+                <input type="text" id="reg-legal" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入负责人姓名">
+              </div>
+              
+              <div>
+                <label for="reg-contact" class="block text-sm font-medium text-tertiary mb-2">联系人</label>
+                <input type="text" id="reg-contact" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入联系人姓名">
+              </div>
+              
+              <div>
+                <label for="reg-phone" class="block text-sm font-medium text-tertiary mb-2">联系电话</label>
+                <input type="tel" id="reg-phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="请输入联系电话">
+              </div>
+            </div>
+            
+            <div>
+              <label for="reg-license" class="block text-sm font-medium text-tertiary mb-2">监管资质证明</label>
+              <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
+                <i class="fa fa-file-text-o text-3xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-tertiary mb-2">点击或拖拽文件至此处上传</p>
+                <p class="text-xs text-gray-500">支持JPG、PNG格式，文件大小不超过5MB</p>
+                <input type="file" id="reg-upload" class="hidden">
+                <button type="button" id="reg-upload-btn" class="mt-3 text-primary text-sm font-medium">
+                  <i class="fa fa-cloud-upload mr-1"></i>选择文件
+                </button>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <button type="submit" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90 w-full">
+                <i class="fa fa-check mr-2"></i>提交认证申请
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 认证成功提示 -->
+    <div id="auth-success" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-2xl p-8 text-center max-w-md w-full mx-4">
+        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fa fa-check text-3xl text-green-500"></i>
+        </div>
+        <h3 class="text-xl font-bold text-dark mb-2" id="success-title">企业认证申请已提交</h3>
+        <p class="text-tertiary mb-8" id="success-message">我们将在1-3个工作日内审核您的申请，请耐心等待。</p>
+        <button id="close-success" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90">
+          确定
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-dark text-white py-12">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <div class="flex items-center space-x-2 mb-4">
+            <i class="fa fa-leaf text-primary text-2xl"></i>
+            <h2 class="text-xl font-bold">中药追溯码平台</h2>
+          </div>
+          <p class="text-gray-400 mb-4">
+            致力于为消费者提供透明、可靠的中药追溯服务，保障用药安全，促进中药产业健康发展。
+          </p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+              <i class="fa fa-weixin text-xl"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+              <i class="fa fa-weibo text-xl"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+              <i class="fa fa-qq text-xl"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-bold mb-4">快速链接</h3>
+          <ul class="space-y-2">
+            <li><a href="#consumer" class="text-gray-400 hover:text-primary transition-colors">消费者查询</a></li>
+            <li><a href="#enterprise" class="text-gray-400 hover:text-primary transition-colors">企业认证</a></li>
+            <li><a href="#regulator" class="text-gray-400 hover:text-primary transition-colors">监管部门认证</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-primary transition-colors">追溯流程</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-primary transition-colors">常见问题</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-bold mb-4">联系我们</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li class="flex items-start">
+              <i class="fa fa-map-marker mt-1 mr-3 text-primary"></i>
+              <span>黑龙江省哈尔滨市南岗区科技路88号</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-phone mr-3 text-primary"></i>
+              <span>0451-88887777</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-envelope mr-3 text-primary"></i>
+              <span>service@zhongyao-trace.com</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500 text-sm">
+        <p>© 2025 中药追溯码平台 版权所有 | 黑龙江省市场监督管理局 监制</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 移动端菜单切换
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileMenu.classList.toggle('hidden');
+    });
+    
+    // 消费者查询模态框
+    document.getElementById('consumer-btn').addEventListener('click', function() {
+      document.getElementById('consumer-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+    
+    document.getElementById('close-consumer-modal').addEventListener('click', function() {
+      document.getElementById('consumer-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+    
+    // 模拟扫码功能
+    document.getElementById('scan-btn').addEventListener('click', function() {
+      document.getElementById('qr-code').value = 'HM20230618001';
+    });
+    
+    // 查询追溯信息
+    document.getElementById('query-btn').addEventListener('click', function() {
+      const qrCode = document.getElementById('qr-code').value;
+      if (qrCode) {
+        document.getElementById('consumer-modal').classList.add('hidden');
+        document.getElementById('trace-info').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // 更新追溯码信息
+        document.getElementById('trace-code').textContent = qrCode;
+        document.getElementById('query-time').textContent = new Date().toLocaleString();
+      } else {
+        alert('请输入追溯码');
+      }
+    });
+    
+    // 关闭追溯信息
+    document.getElementById('close-trace-info').addEventListener('click', function() {
+      document.getElementById('trace-info').classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+    
+    document.getElementById('close-trace-btn').addEventListener('click', function() {
+      document.getElementById('trace-info').classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+    
+    // 企业认证模态框
+    document.getElementById('enterprise-btn').addEventListener('click', function() {
+      document.getElementById('enterprise-auth').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+    
+    document.getElementById('close-enterprise-auth').addEventListener('click', function() {
+      document.getElementById('enterprise-auth').classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+    
+    // 监管部门认证模态框
+    document.getElementById('regulator-btn').addEventListener('click', function() {
+      document.getElementById('regulator-auth').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+    
+    document.getElementById('close-regulator-auth').addEventListener('click', function() {
+      document.getElementById('regulator-auth').classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+    
+    // 上传文件按钮
+    document.getElementById('ent-upload-btn').addEventListener('click', function() {
+      document.getElementById('ent-upload').click();
+    });
+    
+    document.getElementById('reg-upload-btn').addEventListener('click', function() {
+      document.getElementById('reg-upload').click();
+    });
+    
+    // 企业认证表单提交
+    document.getElementById('enterprise-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      document.getElementById('enterprise-auth').classList.add('hidden');
+      document.getElementById('auth-success').classList.remove('hidden');
+      document.getElementById('success-title').textContent = '企业认证申请已提交';
+      document.getElementById('success-message').textContent = '我们将在1-3个工作日内审核您的申请，请耐心等待。';
+      document.body.style.overflow = 'hidden';
+    });
+    
+    // 监管部门认证表单提交
+    document.getElementById('regulator-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      document.getElementById('regulator-auth').classList.add('hidden');
+      document.getElementById('auth-success').classList.remove('hidden');
+      document.getElementById('success-title').textContent = '监管部门认证申请已提交';
+      document.getElementById('success-message').textContent = '我们将在1-3个工作日内审核您的申请，请耐心等待。';
+      document.body.style.overflow = 'hidden';
+    });
+    
+    // 关闭认证成功提示
+    document.getElementById('close-success').addEventListener('click', function() {
+      document.getElementById('auth-success').classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+    
+    // 滚动时导航栏效果
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('header');
+      if (window.scrollY > 10) {
+        header.classList.add('py-2');
+        header.classList.remove('py-3');
+      } else {
+        header.classList.add('py-3');
+        header.classList.remove('py-2');
+      }
+    });
+  </script>
+</body>
+</html>
